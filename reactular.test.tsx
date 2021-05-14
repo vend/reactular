@@ -101,6 +101,11 @@ class ClassComponentTwoWrapper implements IComponentOptions {
   };
 }
 
+const MemoComponent = React.memo((props: Props) => {
+  props.onRender && props.onRender();
+  return <div>{props.foo}</div>;
+});
+
 const MyContext = React.createContext<string>('');
 
 const wrapper: React.FC = ({ children }) => (
@@ -124,6 +129,7 @@ const TestAngularClassTwo = reactular(ClassComponentTwo, [
   'onRender',
   'onChange',
 ]);
+const TestAngularMemo = reactular(MemoComponent, ['foo', 'onRender']);
 
 module('test', [])
   .component('testAngularClass', TestAngularClass)
@@ -140,7 +146,8 @@ module('test', [])
   .component('testAngularInjectableWrapper', TestAngularInjectableWrapper)
   .component('testAngularWrapper', TestAngularWrapper)
   .component('testAngularClassTwo', TestAngularClassTwo)
-  .component('testAngularClassTwoWrapper', new ClassComponentTwoWrapper());
+  .component('testAngularClassTwoWrapper', new ClassComponentTwoWrapper())
+  .component('testAngularMemo', TestAngularMemo);
 
 bootstrap($([]), ['test'], { strictDi: true });
 
@@ -148,6 +155,7 @@ interface Props {
   bar: boolean[];
   baz(value: number): void;
   foo: number;
+  onRender?(): void;
   onUnmount?(): void;
 }
 
@@ -407,5 +415,32 @@ describe('reactular', () => {
       expect(componentWillUnmountSpy).toBeCalledTimes(1);
       expect(renderSpy).toBeCalledTimes(0);
     });
+  });
+
+  it('should re-render memoized components only when props change', () => {
+    const renderSpy = jest.fn();
+
+    const scope = Object.assign($rootScope.$new(true), {
+      onRender: renderSpy,
+      foo: 1,
+    });
+    const element = $(`
+        <test-angular-memo
+          on-render="onRender"
+          foo="foo">
+        </test-angular-memo>
+      `);
+
+    $compile(element)(scope);
+    $rootScope.$apply();
+    expect(renderSpy).toHaveBeenCalledTimes(1);
+
+    renderSpy.mockClear();
+    scope.$apply(() => (scope.foo = 1));
+    expect(renderSpy).not.toHaveBeenCalled();
+
+    renderSpy.mockClear();
+    scope.$apply(() => (scope.foo = 2));
+    expect(renderSpy).toHaveBeenCalledTimes(1);
   });
 });
