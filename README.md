@@ -130,7 +130,7 @@ Basic usage and behavior of Reactular is similar to react2angular, but it differ
 
 ### Rendering
 
-react2angular does a shallow prop check every time the AngularJS `$onChanges` method is called and only re-renders the React component when it detects a change. (See https://github.com/coatue-oss/react2angular/issues/93.)
+react2angular does a shallow prop check every time the AngularJS `$onChanges` method is called and only re-renders the React component when it detects a change. (See coatue-oss/react2angular#93.)
 
 Reactular re-renders the React component every time `$onChanges` is called. You may wrap your component with `React.memo` to get behavior similar to react2angular.
 
