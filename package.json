@@ -1,0 +1,25 @@
+{
+  "name": "@vendhq/reactular",
+  "version": "0.0.1",
+  "description": "Use React components in Angular 1",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@types/react": "^16.9.0 || ^17.0.0"
+  },
+  "peerDependencies": {
+    "react": "^16.9.0 || ^17.0.0",
+    "react-dom": "^16.9.0 || ^17.0.0"
+  },
+  "devDependencies": {
+    "@types/angular": "^1.8.1",
+    "@types/react-dom": "^17.0.3",
+    "angular": "^1.8.2",
+    "react": "^17.0.2",
+    "react-dom": "^17.0.2"
+  },
+  "author": "",
+  "license": "MIT"
+}
