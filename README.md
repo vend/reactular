@@ -1,6 +1,6 @@
 # reactular
 
-Reactular allows you to use React components in AngularJS (Angular 1.x).
+Reactular allows you to use React components in AngularJS (Angular 1.x). It began as a fork of [react2angular](https://github.com/coatue-oss/react2angular). See the [comparison below](#comparison-to-react2angular) for differences.
 
 ## Installation
 
@@ -123,3 +123,21 @@ If the components you want to transclude exist on the AngularJS side, you could 
 ### Binding
 
 Only expression AngularJS binding (`<`) is supported. There is probably not any reasonable way to introduce support for two-way binding.
+
+## Comparison to react2angular
+
+Basic usage and behavior of Reactular is similar to react2angular, but it differs in a few ways.
+
+### Rendering
+
+react2angular does a shallow prop check every time the AngularJS `$onChanges` method is called and only re-renders the React component when it detects a change. (See https://github.com/coatue-oss/react2angular/issues/93.)
+
+Reactular re-renders the React component every time `$onChanges` is called. You may wrap your component with `React.memo` to get behavior similar to react2angular.
+
+### Dependency Injection
+
+Reactular does not directly support injecting AngularJS dependencies through props the way react2angular does. Instead, if you need to access AngularJS dependencies, do it through [wrapper components](#angularjs-injectable-wrapper) and React context. This makes it easier to use the same components from both AngularJS and React.
+
+### Prop Types
+
+Reactular does not have any special support for prop types. Prop names must always be passed to the `reactular` function.
