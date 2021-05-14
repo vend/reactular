@@ -100,8 +100,9 @@ class TestSix extends React.Component<Props & DIProps> {
   }
 }
 
-function TestSeven(props: Props) {
-  return <p>{props.foo}</p>;
+function TestSeven() {
+  const v = React.useContext(MyContext);
+  return <p>{v}</p>;
 }
 
 interface TestEightProps {
@@ -308,7 +309,7 @@ describe('reactular', () => {
     });
   });
 
-  describe('react stateless components', () => {
+  describe('react functional components', () => {
     it('should render', () => {
       const scope = Object.assign($rootScope.$new(true), {
         bar: [true, false],
@@ -379,6 +380,13 @@ describe('reactular', () => {
       $rootScope.$apply();
       Simulate.click(element.find('p').eq(2)[0]);
       expect(baz).toHaveBeenCalledWith(42);
+    });
+
+    it('should render inside a wrapper component', () => {
+      const element = $(`<test-angular-seven></test-angular-seven>`);
+      $compile(element)($rootScope);
+      $rootScope.$apply();
+      expect(element.find('p').text()).toBe('world');
     });
 
     // TODO: support children
