@@ -2,13 +2,10 @@ import angular, {
   auto,
   bootstrap,
   element as $,
-  IAugmentedJQuery,
   ICompileService,
   IComponentOptions,
   IController,
-  IHttpService,
   IRootScopeService,
-  IQService,
   IScope,
   module,
 } from 'angular';
@@ -51,52 +48,6 @@ const TestThree: React.FC = () => <div>Foo</div>;
 class TestFour extends React.Component<Props> {
   render() {
     return <div>Foo</div>;
-  }
-}
-
-class TestSixService {
-  constructor(private $q: IQService) {}
-
-  foo() {
-    return this.$q.resolve('testSixService result');
-  }
-}
-
-type DIProps = {
-  $element: IAugmentedJQuery;
-  $http: IHttpService;
-  testSixService: TestSixService;
-};
-
-class TestSix extends React.Component<Props & DIProps> {
-  state = {
-    elementText: '',
-    result: '',
-    testSixService: '',
-  };
-
-  render() {
-    return (
-      <div>
-        <p>{this.state.result}</p>
-        <p>{this.state.elementText}</p>
-        <p>{this.state.testSixService}</p>
-        <p>{this.props.foo}</p>
-        <span>$element result</span>
-      </div>
-    );
-  }
-
-  componentDidMount() {
-    this.setState({
-      elementText: this.props.$element.find('span').text(),
-    });
-    this.props.$http
-      .get('https://example.com/')
-      .then(_ => this.setState({ result: _.data }));
-    this.props.testSixService
-      .foo()
-      .then(_ => this.setState({ testSixService: _ }));
   }
 }
 
@@ -160,7 +111,7 @@ const TestAngularOne = reactular(TestOne, ['foo', 'bar', 'baz']);
 const TestAngularTwo = reactular(TestTwo, ['foo', 'bar', 'baz', 'onUnmount']);
 const TestAngularThree = reactular(TestThree);
 const TestAngularFour = reactular(TestFour);
-const TestAngularSix = reactular(TestSix, ['foo'], 'wrapper');
+const TestAngularSix = reactular(TestSeven, [], 'wrapper');
 const TestAngularSeven = reactular(TestSeven, [], wrapper);
 const TestAngularEight = reactular(TestEight, [
   'values',
@@ -174,8 +125,13 @@ module('test', [])
   .component('testAngularTwo', TestAngularTwo)
   .component('testAngularThree', TestAngularThree)
   .component('testAngularFour', TestAngularFour)
-  .service('testSixService', ['$q', TestSixService])
   .constant('foo', 'CONSTANT FOO')
+  .factory('wrapper', (foo: string) => {
+    const wrapper: React.FC = ({ children }) => (
+      <MyContext.Provider value={foo}>{children}</MyContext.Provider>
+    );
+    return wrapper;
+  })
   .component('testAngularSix', TestAngularSix)
   .component('testAngularSeven', TestAngularSeven)
   .component('testAngularEight', TestAngularEight)
@@ -192,16 +148,12 @@ interface Props {
 
 describe('reactular', () => {
   let $compile: ICompileService;
-  // let $http: IHttpService
-  // let $q: IQService
   let $rootScope: IRootScopeService;
 
   beforeEach(() => {
     angular.mock.module('test');
     angular.mock.inject(function ($injector: auto.IInjectorService) {
       $compile = $injector.get('$compile');
-      // $http = $inject.get('$http');
-      // $q = $inject.get('$q');
       $rootScope = $injector.get('$rootScope');
     });
   });
@@ -387,6 +339,13 @@ describe('reactular', () => {
       $compile(element)($rootScope);
       $rootScope.$apply();
       expect(element.find('p').text()).toBe('world');
+    });
+
+    it('should inject wrapper strings as components', () => {
+      const element = $(`<test-angular-six></test-angular-six>`);
+      $compile(element)($rootScope);
+      $rootScope.$apply();
+      expect(element.find('p').text()).toBe('CONSTANT FOO');
     });
 
     // TODO: support children
