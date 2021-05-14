@@ -1,6 +1,6 @@
 {
   "name": "@vendhq/reactular",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "Use React components in Angular 1",
   "main": "dist/reactular.js",
   "types": "dist/reactular.d.ts",
