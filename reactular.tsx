@@ -24,6 +24,7 @@ export const reactular = <Props extends object>(
       '$element',
       '$injector',
       class implements IController {
+        private destroyed = false
         private props: Props = {} as Props
 
         constructor(
@@ -32,6 +33,9 @@ export const reactular = <Props extends object>(
         ) {}
 
         public $onChanges(changes: OnChanges<Props>): void {
+          if (this.destroyed) {
+            return;
+          }
           for (const change in changes) {
             if (changes.hasOwnProperty(change)) {
               this.props[change] = changes[change].currentValue
@@ -52,6 +56,7 @@ export const reactular = <Props extends object>(
         }
 
         public $onDestroy(): void {
+          this.destroyed = true;
           unmountComponentAtNode(this.$element[0])
         }
       },
