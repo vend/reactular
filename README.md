@@ -9,7 +9,7 @@ Reactular allows you to use React components in AngularJS (Angular 1.x).
 npm install @vendhq/reactular react react-dom
 
 # Or, using Yarn:
-yarn add reactular react react-dom
+yarn add @vendhq/reactular react react-dom
 ```
 
 ## Usage
