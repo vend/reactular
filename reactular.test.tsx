@@ -14,7 +14,7 @@ import * as React from 'react';
 import { Simulate } from 'react-dom/test-utils';
 import { reactular } from './reactular';
 
-class TestOne extends React.Component<Props> {
+class ClassComponent extends React.Component<Props> {
   render() {
     return (
       <div>
@@ -30,7 +30,7 @@ class TestOne extends React.Component<Props> {
   }
 }
 
-const TestTwo: React.FC<Props> = props => {
+const FunctionComponent: React.FC<Props> = props => {
   React.useEffect(() => props.onUnmount);
 
   return (
@@ -43,27 +43,27 @@ const TestTwo: React.FC<Props> = props => {
   );
 };
 
-const TestThree: React.FC = () => <div>Foo</div>;
+const NoPropsFunctionComponent: React.FC = () => <div>Foo</div>;
 
-class TestFour extends React.Component<Props> {
+class NoPropsClassComponent extends React.Component<Props> {
   render() {
     return <div>Foo</div>;
   }
 }
 
-function TestSeven() {
+function ContextComponent() {
   const v = React.useContext(MyContext);
   return <p>{v}</p>;
 }
 
-interface TestEightProps {
+interface ClassProps {
   onChange: jest.Mock;
   onComponentWillUnmount: jest.Mock;
   onRender: jest.Mock;
   values: string[];
 }
 
-class TestEight extends React.Component<TestEightProps> {
+class ClassComponentTwo extends React.Component<ClassProps> {
   render() {
     this.props.onRender();
     return this.props.values.map((value, index) => (
@@ -77,18 +77,18 @@ class TestEight extends React.Component<TestEightProps> {
   }
 }
 
-class TestEightWrapper implements IComponentOptions {
+class ClassComponentTwoWrapper implements IComponentOptions {
   bindings = {
     onComponentWillUnmount: '<',
     onRender: '<',
     values: '<',
   };
-  template = `<test-angular-eight
+  template = `<test-angular-class-two
                 on-change="$ctrl.onChange"
                 on-component-will-unmount="$ctrl.onComponentWillUnmount"
                 on-render="$ctrl.onRender"
                 values="$ctrl.values">
-              </test-angular-eight>`;
+              </test-angular-class-two>`;
   controller = class implements IController {
     values!: string[];
 
@@ -107,13 +107,18 @@ const wrapper: React.FC = ({ children }) => (
   <MyContext.Provider value="world">{children}</MyContext.Provider>
 );
 
-const TestAngularOne = reactular(TestOne, ['foo', 'bar', 'baz']);
-const TestAngularTwo = reactular(TestTwo, ['foo', 'bar', 'baz', 'onUnmount']);
-const TestAngularThree = reactular(TestThree);
-const TestAngularFour = reactular(TestFour);
-const TestAngularSix = reactular(TestSeven, [], 'wrapper');
-const TestAngularSeven = reactular(TestSeven, [], wrapper);
-const TestAngularEight = reactular(TestEight, [
+const TestAngularClass = reactular(ClassComponent, ['foo', 'bar', 'baz']);
+const TestAngularFunction = reactular(FunctionComponent, [
+  'foo',
+  'bar',
+  'baz',
+  'onUnmount',
+]);
+const TestAngularNoProps = reactular(NoPropsFunctionComponent);
+const TestAngularNoPropsClass = reactular(NoPropsClassComponent);
+const TestAngularInjectableWrapper = reactular(ContextComponent, [], 'wrapper');
+const TestAngularWrapper = reactular(ContextComponent, [], wrapper);
+const TestAngularClassTwo = reactular(ClassComponentTwo, [
   'values',
   'onComponentWillUnmount',
   'onRender',
@@ -121,10 +126,10 @@ const TestAngularEight = reactular(TestEight, [
 ]);
 
 module('test', [])
-  .component('testAngularOne', TestAngularOne)
-  .component('testAngularTwo', TestAngularTwo)
-  .component('testAngularThree', TestAngularThree)
-  .component('testAngularFour', TestAngularFour)
+  .component('testAngularClass', TestAngularClass)
+  .component('testAngularFunction', TestAngularFunction)
+  .component('testAngularNoProps', TestAngularNoProps)
+  .component('testAngularNoPropsClass', TestAngularNoPropsClass)
   .constant('foo', 'CONSTANT FOO')
   .factory('wrapper', (foo: string) => {
     const wrapper: React.FC = ({ children }) => (
@@ -132,10 +137,10 @@ module('test', [])
     );
     return wrapper;
   })
-  .component('testAngularSix', TestAngularSix)
-  .component('testAngularSeven', TestAngularSeven)
-  .component('testAngularEight', TestAngularEight)
-  .component('testAngularEightWrapper', new TestEightWrapper());
+  .component('testAngularInjectableWrapper', TestAngularInjectableWrapper)
+  .component('testAngularWrapper', TestAngularWrapper)
+  .component('testAngularClassTwo', TestAngularClassTwo)
+  .component('testAngularClassTwoWrapper', new ClassComponentTwoWrapper());
 
 bootstrap($([]), ['test'], { strictDi: true });
 
@@ -160,17 +165,17 @@ describe('reactular', () => {
 
   describe('initialization', () => {
     it('should give an angular component', () => {
-      expect(TestAngularOne.bindings).not.toBeUndefined();
-      expect(TestAngularOne.controller).not.toBeUndefined();
+      expect(TestAngularClass.bindings).not.toBeUndefined();
+      expect(TestAngularClass.controller).not.toBeUndefined();
     });
 
     it('should have empty bindings when parameter is an empty array', () => {
-      const reactAngularComponent = reactular(TestFour, []);
+      const reactAngularComponent = reactular(NoPropsClassComponent, []);
       expect(reactAngularComponent.bindings).toEqual({});
     });
 
     it('should have empty bindings when parameter is not passed', () => {
-      expect(reactular(TestThree).bindings).toEqual({});
+      expect(reactular(NoPropsFunctionComponent).bindings).toEqual({});
     });
   });
 
@@ -182,7 +187,7 @@ describe('reactular', () => {
         foo: 1,
       });
       const element = $(
-        `<test-angular-one foo="foo" bar="bar" baz="baz"></test-angular-one>`,
+        `<test-angular-class foo="foo" bar="bar" baz="baz"></test-angular-class>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
@@ -191,7 +196,9 @@ describe('reactular', () => {
 
     it('should render (even if the component takes no props)', () => {
       const scope = $rootScope.$new(true);
-      const element = $(`<test-angular-four></test-angular-four>`);
+      const element = $(
+        `<test-angular-no-props-class></test-angular-no-props-class>`,
+      );
       $compile(element)(scope);
       $rootScope.$apply();
       expect(element.text()).toBe('Foo');
@@ -204,7 +211,7 @@ describe('reactular', () => {
         foo: 1,
       });
       const element = $(
-        `<test-angular-one foo="foo" bar="bar" baz="baz"></test-angular-one>`,
+        `<test-angular-class foo="foo" bar="bar" baz="baz"></test-angular-class>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
@@ -220,13 +227,13 @@ describe('reactular', () => {
         foo: 1,
       });
       const element = $(
-        `<test-angular-one foo="foo" bar="bar" baz="baz"></test-angular-one>`,
+        `<test-angular-class foo="foo" bar="bar" baz="baz"></test-angular-class>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
-      jest.spyOn(TestOne.prototype, 'componentWillUnmount');
+      jest.spyOn(ClassComponent.prototype, 'componentWillUnmount');
       scope.$destroy();
-      expect(TestOne.prototype.componentWillUnmount).toHaveBeenCalled();
+      expect(ClassComponent.prototype.componentWillUnmount).toHaveBeenCalled();
     });
 
     it('should take callbacks', () => {
@@ -237,7 +244,7 @@ describe('reactular', () => {
         foo: 1,
       });
       const element = $(
-        `<test-angular-one foo="foo" bar="bar" baz="baz"></test-angular-one>`,
+        `<test-angular-class foo="foo" bar="bar" baz="baz"></test-angular-class>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
@@ -253,7 +260,7 @@ describe('reactular', () => {
         foo: 1,
       });
       const element = $(
-        `<test-angular-one foo="foo" bar="bar" baz="baz"><span>Transcluded</span></test-angular-one>`,
+        `<test-angular-class foo="foo" bar="bar" baz="baz"><span>Transcluded</span></test-angular-class>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
@@ -269,7 +276,7 @@ describe('reactular', () => {
         foo: 1,
       });
       const element = $(
-        `<test-angular-two foo="foo" bar="bar" baz="baz"></test-angular-two>`,
+        `<test-angular-function foo="foo" bar="bar" baz="baz"></test-angular-function>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
@@ -278,7 +285,7 @@ describe('reactular', () => {
 
     it('should render (even if the component takes no props)', () => {
       const scope = $rootScope.$new(true);
-      const element = $(`<test-angular-three></test-angular-three>`);
+      const element = $(`<test-angular-no-props></test-angular-no-props>`);
       $compile(element)(scope);
       $rootScope.$apply();
       expect(element.text()).toBe('Foo');
@@ -291,7 +298,7 @@ describe('reactular', () => {
         foo: 1,
       });
       const element = $(
-        `<test-angular-two foo="foo" bar="bar" baz="baz"></test-angular-two>`,
+        `<test-angular-function foo="foo" bar="bar" baz="baz"></test-angular-function>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
@@ -309,7 +316,7 @@ describe('reactular', () => {
         onUnmount,
       });
       const element = $(
-        `<test-angular-two foo="foo" bar="bar" baz="baz" on-unmount="onUnmount"></test-angular-two>`,
+        `<test-angular-function foo="foo" bar="bar" baz="baz" on-unmount="onUnmount"></test-angular-function>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
@@ -326,7 +333,7 @@ describe('reactular', () => {
         foo: 1,
       });
       const element = $(
-        `<test-angular-two foo="foo" bar="bar" baz="baz"></test-angular-two>`,
+        `<test-angular-function foo="foo" bar="bar" baz="baz"></test-angular-function>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
@@ -335,14 +342,16 @@ describe('reactular', () => {
     });
 
     it('should render inside a wrapper component', () => {
-      const element = $(`<test-angular-seven></test-angular-seven>`);
+      const element = $(`<test-angular-wrapper></test-angular-wrapper>`);
       $compile(element)($rootScope);
       $rootScope.$apply();
       expect(element.find('p').text()).toBe('world');
     });
 
     it('should inject wrapper strings as components', () => {
-      const element = $(`<test-angular-six></test-angular-six>`);
+      const element = $(
+        `<test-angular-injectable-wrapper></test-angular-injectable-wrapper>`,
+      );
       $compile(element)($rootScope);
       $rootScope.$apply();
       expect(element.find('p').text()).toBe('CONSTANT FOO');
@@ -356,7 +365,7 @@ describe('reactular', () => {
         foo: 1,
       });
       const element = $(
-        `<test-angular-two foo="foo" bar="bar" baz="baz"><span>Transcluded</span></test-angular-two>`,
+        `<test-angular-function foo="foo" bar="bar" baz="baz"><span>Transcluded</span></test-angular-function>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
@@ -373,17 +382,17 @@ describe('reactular', () => {
         values: ['val1'],
       });
       const element = $(`
-        <test-angular-eight-wrapper
+        <test-angular-class-two-wrapper
           on-render="onRender"
           on-component-will-unmount="onComponentWillUnmount"
           values="values">
-        </test-angular-eight-wrapper>
+        </test-angular-class-two-wrapper>
       `);
 
       $compile(element)(scope);
 
       const childScope = angular
-        .element(element.find('test-angular-eight'))
+        .element(element.find('test-angular-class-two'))
         .scope();
       $rootScope.$apply();
 
