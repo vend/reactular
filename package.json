@@ -2,23 +2,25 @@
   "name": "@vendhq/reactular",
   "version": "0.0.1",
   "description": "Use React components in Angular 1",
-  "main": "index.js",
+  "main": "dist/reactular.js",
+  "types": "dist/reactular.d.ts",
   "scripts": {
+    "build": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "@types/react": "^16.9.0 || ^17.0.0"
-  },
   "peerDependencies": {
+    "@types/react": "^16.9.0 || ^17.0.0",
     "react": "^16.9.0 || ^17.0.0",
     "react-dom": "^16.9.0 || ^17.0.0"
   },
   "devDependencies": {
     "@types/angular": "^1.8.1",
+    "@types/react": "^17.0.0",
     "@types/react-dom": "^17.0.3",
     "angular": "^1.8.2",
     "react": "^17.0.2",
-    "react-dom": "^17.0.2"
+    "react-dom": "^17.0.2",
+    "typescript": "^4.2.4"
   },
   "author": "",
   "license": "MIT"

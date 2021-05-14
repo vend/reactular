@@ -6,7 +6,7 @@ type OnChanges<T> = {
   [K in keyof T]: IChangesObject<T[K]>
 }
 
-export const reactular = <Props extends unknown>(
+export const reactular = <Props extends object>(
   Component: React.ComponentType<Props>,
   bindingNames: Array<keyof Props> = [],
   wrapper?: string | React.ComponentType
