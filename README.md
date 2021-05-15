@@ -93,7 +93,7 @@ const HelloComponent = () => {
 
 angular
   .module('myModule', [])
-  .service('reactWrapper', $filter => {
+  .factory('reactWrapper', $filter => {
       return ({ children }) => <MyContext.Provider value={$filter}>{children}</MyContext.Provider>;
   })
   .component('helloComponent', reactular(HelloComponent, [], 'reactWrapper'));
