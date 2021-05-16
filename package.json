@@ -2,13 +2,14 @@
   "name": "@vendhq/reactular",
   "version": "0.0.1-rc.1",
   "description": "Use React components in Angular 1",
-  "main": "dist/reactular.js",
+  "main": "dist/cjs/reactular.js",
+  "module": "dist/es/reactular.js",
   "types": "dist/reactular.d.ts",
   "files": [
     "dist/*"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json && tsc -p tsconfig.build.json --outDir dist/cjs --module commonjs",
     "lint": "eslint *.tsx",
     "test": "jest"
   },
