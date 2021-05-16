@@ -4,7 +4,7 @@
   "description": "Use React components in Angular 1",
   "main": "dist/cjs/reactular.js",
   "module": "dist/es/reactular.js",
-  "types": "dist/reactular.d.ts",
+  "types": "dist/es/reactular.d.ts",
   "files": [
     "dist/*"
   ],
