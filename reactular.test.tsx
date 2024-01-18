@@ -108,7 +108,7 @@ const MemoComponent = React.memo((props: Props) => {
 
 const MyContext = React.createContext<string>('');
 
-const wrapper: React.FC = ({ children }) => (
+const wrapper: React.FC<React.PropsWithChildren> = ({ children }) => (
   <MyContext.Provider value="world">{children}</MyContext.Provider>
 );
 
@@ -138,7 +138,7 @@ module('test', [])
   .component('testAngularNoPropsClass', TestAngularNoPropsClass)
   .constant('foo', 'CONSTANT FOO')
   .factory('wrapper', (foo: string) => {
-    const wrapper: React.FC = ({ children }) => (
+    const wrapper: React.FC<React.PropsWithChildren> = ({ children }) => (
       <MyContext.Provider value={foo}>{children}</MyContext.Provider>
     );
     return wrapper;
@@ -157,6 +157,7 @@ interface Props {
   foo: number;
   onRender?(): void;
   onUnmount?(): void;
+  children?: React.ReactNode;
 }
 
 describe('reactular', () => {

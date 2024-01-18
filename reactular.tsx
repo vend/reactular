@@ -9,7 +9,8 @@ type OnChanges<T> = {
 export const reactular = <Props extends object>(
   Component: React.ComponentType<Props>,
   bindingNames: Array<keyof Props> = [],
-  wrapper?: string | React.ComponentType,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  wrapper?: string | React.ComponentType<React.PropsWithChildren<any>>,
 ): IComponentOptions => {
   const bindings: {
     [prop: string]: '<';
@@ -44,7 +45,10 @@ export const reactular = <Props extends object>(
 
           const Wrapper =
             typeof wrapper === 'string'
-              ? this.$injector.get<React.ComponentType>(wrapper)
+              ? this.$injector.get<
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  React.ComponentType<React.PropsWithChildren<any>>
+                >(wrapper)
               : wrapper;
 
           let nodes = <Component {...this.props} />;
