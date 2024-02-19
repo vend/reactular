@@ -14,6 +14,8 @@ import * as React from 'react';
 import { Simulate } from 'react-dom/test-utils';
 import { reactular } from './reactular';
 
+const wait = () => new Promise(resolve => setTimeout(resolve, 10));
+
 class ClassComponent extends React.Component<Props> {
   render() {
     return (
@@ -108,7 +110,7 @@ const MemoComponent = React.memo((props: Props) => {
 
 const MyContext = React.createContext<string>('');
 
-const wrapper: React.FC = ({ children }) => (
+const wrapper: React.FC<React.PropsWithChildren> = ({ children }) => (
   <MyContext.Provider value="world">{children}</MyContext.Provider>
 );
 
@@ -138,7 +140,7 @@ module('test', [])
   .component('testAngularNoPropsClass', TestAngularNoPropsClass)
   .constant('foo', 'CONSTANT FOO')
   .factory('wrapper', (foo: string) => {
-    const wrapper: React.FC = ({ children }) => (
+    const wrapper: React.FC<React.PropsWithChildren> = ({ children }) => (
       <MyContext.Provider value={foo}>{children}</MyContext.Provider>
     );
     return wrapper;
@@ -157,6 +159,7 @@ interface Props {
   foo: number;
   onRender?(): void;
   onUnmount?(): void;
+  children?: React.ReactNode;
 }
 
 describe('reactular', () => {
@@ -188,7 +191,7 @@ describe('reactular', () => {
   });
 
   describe('react classes', () => {
-    it('should render', () => {
+    it('should render', async () => {
       const scope = Object.assign($rootScope.$new(true), {
         bar: [true, false],
         baz: (value: number) => value + 1,
@@ -197,22 +200,25 @@ describe('reactular', () => {
       const element = $(
         `<test-angular-class foo="foo" bar="bar" baz="baz"></test-angular-class>`,
       );
+
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       expect(element.find('p').length).toBe(3);
     });
 
-    it('should render (even if the component takes no props)', () => {
+    it('should render (even if the component takes no props)', async () => {
       const scope = $rootScope.$new(true);
       const element = $(
         `<test-angular-no-props-class></test-angular-no-props-class>`,
       );
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       expect(element.text()).toBe('Foo');
     });
 
-    it('should update', () => {
+    it('should update', async () => {
       const scope = Object.assign($rootScope.$new(true), {
         bar: [true, false],
         baz: (value: number) => value + 1,
@@ -223,12 +229,14 @@ describe('reactular', () => {
       );
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       expect(element.find('p').eq(1).text()).toBe('Bar: true,false');
       scope.$apply(() => (scope.bar = [false, true, true]));
+      await wait();
       expect(element.find('p').eq(1).text()).toBe('Bar: false,true,true');
     });
 
-    it('should destroy', () => {
+    it('should destroy', async () => {
       const scope = Object.assign($rootScope.$new(true), {
         bar: [true, false],
         baz: (value: number) => value + 1,
@@ -239,12 +247,13 @@ describe('reactular', () => {
       );
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       jest.spyOn(ClassComponent.prototype, 'componentWillUnmount');
       scope.$destroy();
       expect(ClassComponent.prototype.componentWillUnmount).toHaveBeenCalled();
     });
 
-    it('should take callbacks', () => {
+    it('should take callbacks', async () => {
       const baz = jest.fn();
       const scope = Object.assign($rootScope.$new(true), {
         bar: [true, false],
@@ -256,12 +265,13 @@ describe('reactular', () => {
       );
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       Simulate.click(element.find('p').eq(2)[0]);
       expect(baz).toHaveBeenCalledWith(42);
     });
 
     // TODO: support children
-    it('should not support children', () => {
+    it('should not support children', async () => {
       const scope = Object.assign($rootScope.$new(true), {
         bar: [true, false],
         baz: (value: number) => value + 1,
@@ -272,12 +282,13 @@ describe('reactular', () => {
       );
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       expect(element.find('span').length).toBe(0);
     });
   });
 
   describe('react functional components', () => {
-    it('should render', () => {
+    it('should render', async () => {
       const scope = Object.assign($rootScope.$new(true), {
         bar: [true, false],
         baz: (value: number) => value + 1,
@@ -288,18 +299,20 @@ describe('reactular', () => {
       );
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       expect(element.find('p').length).toBe(3);
     });
 
-    it('should render (even if the component takes no props)', () => {
+    it('should render (even if the component takes no props)', async () => {
       const scope = $rootScope.$new(true);
       const element = $(`<test-angular-no-props></test-angular-no-props>`);
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       expect(element.text()).toBe('Foo');
     });
 
-    it('should update', () => {
+    it('should update', async () => {
       const scope = Object.assign($rootScope.$new(true), {
         bar: [true, false],
         baz: (value: number) => value + 1,
@@ -310,8 +323,10 @@ describe('reactular', () => {
       );
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       expect(element.find('p').eq(1).text()).toBe('Bar: true,false');
       scope.$apply(() => (scope.bar = [false, true, true]));
+      await wait();
       expect(element.find('p').eq(1).text()).toBe('Bar: false,true,true');
     });
 
@@ -328,12 +343,14 @@ describe('reactular', () => {
       );
       $compile(element)(scope);
       $rootScope.$apply();
-      scope.$destroy();
+      wait().then(() => {
+        scope.$destroy();
+      });
       // onUnmount is called asynchronously.
       // No assertion, but the test will time out if onUnmount is never called.
     });
 
-    it('should take callbacks', () => {
+    it('should take callbacks', async () => {
       const baz = jest.fn();
       const scope = Object.assign($rootScope.$new(true), {
         bar: [true, false],
@@ -345,28 +362,31 @@ describe('reactular', () => {
       );
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       Simulate.click(element.find('p').eq(2)[0]);
       expect(baz).toHaveBeenCalledWith(42);
     });
 
-    it('should render inside a wrapper component', () => {
+    it('should render inside a wrapper component', async () => {
       const element = $(`<test-angular-wrapper></test-angular-wrapper>`);
       $compile(element)($rootScope);
       $rootScope.$apply();
+      await wait();
       expect(element.find('p').text()).toBe('world');
     });
 
-    it('should inject wrapper strings as components', () => {
+    it('should inject wrapper strings as components', async () => {
       const element = $(
         `<test-angular-injectable-wrapper></test-angular-injectable-wrapper>`,
       );
       $compile(element)($rootScope);
       $rootScope.$apply();
+      await wait();
       expect(element.find('p').text()).toBe('CONSTANT FOO');
     });
 
     // TODO: support children
-    it('should not support children', () => {
+    it('should not support children', async () => {
       const scope = Object.assign($rootScope.$new(true), {
         bar: [true, false],
         baz: (value: number) => value + 1,
@@ -377,10 +397,11 @@ describe('reactular', () => {
       );
       $compile(element)(scope);
       $rootScope.$apply();
+      await wait();
       expect(element.find('span').length).toBe(0);
     });
 
-    it('should not call render after component unmount', () => {
+    it('should not call render after component unmount', async () => {
       const componentWillUnmountSpy = jest.fn();
       const renderSpy = jest.fn();
 
@@ -403,6 +424,7 @@ describe('reactular', () => {
         .element(element.find('test-angular-class-two'))
         .scope();
       $rootScope.$apply();
+      await wait();
 
       // Erase first render caused on apply
       renderSpy.mockClear();
@@ -417,7 +439,7 @@ describe('reactular', () => {
     });
   });
 
-  it('should re-render memoized components only when props change', () => {
+  it('should re-render memoized components only when props change', async () => {
     const renderSpy = jest.fn();
 
     const scope = Object.assign($rootScope.$new(true), {
@@ -433,14 +455,17 @@ describe('reactular', () => {
 
     $compile(element)(scope);
     $rootScope.$apply();
+    await wait();
     expect(renderSpy).toHaveBeenCalledTimes(1);
 
     renderSpy.mockClear();
     scope.$apply(() => (scope.foo = 1));
+    await wait();
     expect(renderSpy).not.toHaveBeenCalled();
 
     renderSpy.mockClear();
     scope.$apply(() => (scope.foo = 2));
+    await wait();
     expect(renderSpy).toHaveBeenCalledTimes(1);
   });
 });

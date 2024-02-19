@@ -1,6 +1,6 @@
 import { IComponentOptions, IController, IChangesObject, auto } from 'angular';
 import React from 'react';
-import { render, unmountComponentAtNode } from 'react-dom';
+import { createRoot, Root } from 'react-dom/client';
 
 type OnChanges<T> = {
   [K in keyof T]: IChangesObject<T[K]>;
@@ -9,7 +9,7 @@ type OnChanges<T> = {
 export const reactular = <Props extends object>(
   Component: React.ComponentType<Props>,
   bindingNames: Array<keyof Props> = [],
-  wrapper?: string | React.ComponentType,
+  wrapper?: string | React.FunctionComponent<React.PropsWithChildren<{}>>,
 ): IComponentOptions => {
   const bindings: {
     [prop: string]: '<';
@@ -26,11 +26,14 @@ export const reactular = <Props extends object>(
       class implements IController {
         private destroyed = false;
         private props: Props = {} as Props;
+        private root: Root;
 
         constructor(
           private readonly $element: JQLite,
           private readonly $injector: auto.IInjectorService,
-        ) {}
+        ) {
+          this.root = createRoot(this.$element[0]);
+        }
 
         public $onChanges(changes: OnChanges<Props>): void {
           if (this.destroyed) {
@@ -44,20 +47,21 @@ export const reactular = <Props extends object>(
 
           const Wrapper =
             typeof wrapper === 'string'
-              ? this.$injector.get<React.ComponentType>(wrapper)
+              ? this.$injector.get<
+                  React.FunctionComponent<React.PropsWithChildren<{}>>
+                >(wrapper)
               : wrapper;
 
           let nodes = <Component {...this.props} />;
           if (Wrapper) {
             nodes = <Wrapper>{nodes}</Wrapper>;
           }
-
-          render(nodes, this.$element[0]);
+          this.root.render(nodes);
         }
 
         public $onDestroy(): void {
           this.destroyed = true;
-          unmountComponentAtNode(this.$element[0]);
+          this.root.unmount();
         }
       },
     ],
